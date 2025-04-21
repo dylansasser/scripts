@@ -20,6 +20,8 @@ function lineDraw(){
         //TODO: create constant speed function 
         //TODO: create "ignore path" attr so individual strokes arent animated
         //TODO: fix conflict between click and hover triggers
+        //(*COMPLETE*) TODO: infinite loop
+        //(*COMPLETE*) TODO: scroll trigger
 
         //TODO: alt method - animate with CSS keyframes
   
@@ -31,7 +33,7 @@ function lineDraw(){
             console.warn('SVG element', id, 'cannot include both hover and click triggers')
 
         };
-
+        //Draw stroke once
         function drawStroke(){
             gsap.set(stroke, {
               strokeDashoffset:0})
@@ -44,6 +46,28 @@ function lineDraw(){
                 ease:"power1.out",
                 overwrite: true})
             }
+        //Loop draw animation
+        function drawStrokeLoop() {
+            gsap.set(stroke, {
+              strokeDashoffset: (strokeLength)})
+  
+              gsap.to(stroke, {
+                  delay: 0.2,
+                  strokeDashoffset: 0,
+                  duration: 2,
+                  repeat: -1,
+                  ease:"power1.out",
+                  })
+                }
+        
+        //Terminate draw loop
+        function stopLoop() {
+          gsap.to(stroke, {
+            strokeDashoffset: 0,
+            overwrite: true
+          });
+
+        }
   
         // Page load trigger
         if (triggers.includes("load")) {
@@ -52,34 +76,15 @@ function lineDraw(){
   
         // Hover trigger
         if (triggers.includes("hover")) {
-            let animation;
-
-            function drawStrokeLoop () {
-            gsap.set(stroke, {
-                strokeDashoffset: (strokeLength)
-            })
-
-            gsap.to(stroke, {
-                delay: 0.2,
-                strokeDashoffset: 0,
-                duration: 2,
-                repeat: -1,
-                ease:"power1.out",
-                })
-                
-            };
 
              svg.addEventListener("mouseenter", () => {
                 drawStrokeLoop()
-        
-            }); 
+              }); 
 
              svg.addEventListener("mouseleave", () => {
-                gsap.to(stroke, {
-                strokeDashoffset: 0,
-                overwrite: true
-            });
-        });
+                stopLoop();
+              });
+
         }
         
         
@@ -91,7 +96,38 @@ function lineDraw(){
           });
         }
 
+        // Scroll trigger - Animate once when in view
+        if (triggers.includes("scroll")) {
+        let observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              drawStroke();
+              //console.log('SVG element', id, 'in view');
+              observer.unobserve(svg);
+            }
+          });
+        });
+
+        observer.observe(svg);
+      }
+
+        // Infinite loop while in view
+        if (triggers.includes("loop")) {
+        let observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              drawStrokeLoop();
+              //console.log('SVG element', id, 'loop started');
+            } else{
+              stopLoop();
+              //console.log('SVG element', id, 'loop ended');
+            }
+          });
+        });
         
+          observer.observe(svg);
+        }
+
       });
     });
   }
