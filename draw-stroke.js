@@ -38,6 +38,7 @@ function lineDraw(){
             
 
             gsap.from(stroke, {
+                delay: 0.2,
                 strokeDashoffset: (strokeLength),
                 duration: 2,
                 ease:"power1.out",
@@ -59,6 +60,7 @@ function lineDraw(){
             })
 
             gsap.to(stroke, {
+                delay: 0.2,
                 strokeDashoffset: 0,
                 duration: 2,
                 repeat: -1,
